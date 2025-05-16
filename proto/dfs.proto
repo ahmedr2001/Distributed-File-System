@@ -1,0 +1,124 @@
+syntax = "proto3";
+package dfs;
+
+option go_package = ".";
+
+// Master Tracker service definition
+service MasterTracker {
+  // Get Data Keeper node for uploading a file
+  rpc GetUploadNode(GetUploadNodeRequest) returns (GetUploadNodeResponse) {}
+  
+  // Register a successful upload with the master tracker
+  rpc RegisterUpload(RegisterUploadRequest) returns (RegisterUploadResponse) {}
+  
+  // Get available nodes for downloading a file
+  rpc GetDownloadNodes(GetDownloadNodesRequest) returns (GetDownloadNodesResponse) {}
+  
+  // Heartbeat from Data Keeper to Master Tracker
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse) {}
+  
+  // Notify Data Keepers to replicate a file
+  rpc NotifyReplication(ReplicationRequest) returns (ReplicationResponse) {}
+}
+
+// Data Keeper service definition
+service DataKeeper {
+  // Initiate file transfer from client to data keeper
+  rpc InitiateUpload(InitiateUploadRequest) returns (InitiateUploadResponse) {}
+  
+  // Replicate a file from another data keeper
+  rpc ReplicateFile(ReplicateFileRequest) returns (ReplicateFileResponse) {}
+}
+
+// Request to get a node for uploading
+message GetUploadNodeRequest {
+  string filename = 1;
+}
+
+// Response with node information for uploading
+message GetUploadNodeResponse {
+  string ip = 1;
+  int32 port = 2;
+  string transfer_port = 3;  // Port for file transfer over TCP
+}
+
+// Request to register a successful upload
+message RegisterUploadRequest {
+  string filename = 1;
+  string data_keeper_id = 2;
+  string filepath = 3;
+}
+
+// Response to confirm upload registration
+message RegisterUploadResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Request to get nodes for downloading a file
+message GetDownloadNodesRequest {
+  string filename = 1;
+}
+
+// Response with node information for downloading
+message GetDownloadNodesResponse {
+  repeated DataKeeperInfo nodes = 1;
+}
+
+// Data Keeper information
+message DataKeeperInfo {
+  string ip = 1;
+  int32 port = 2;
+  string transfer_port = 3;  // Port for file transfer over TCP
+}
+
+// Heartbeat request from Data Keeper
+message HeartbeatRequest {
+  string data_keeper_id = 1;
+  string ip = 2;
+  int32 port = 3;
+  string transfer_port = 4;
+}
+
+// Heartbeat response
+message HeartbeatResponse {
+  bool acknowledged = 1;
+}
+
+// Request to initiate file upload
+message InitiateUploadRequest {
+  string filename = 1;
+}
+
+// Response for upload initiation
+message InitiateUploadResponse {
+  bool ready = 1;
+  string transfer_port = 2;  // Port to connect to for TCP file transfer
+}
+
+// Request to replicate a file
+message ReplicationRequest {
+  string source_keeper_id = 1;
+  string dest_keeper_id = 2;
+  string filename = 3;
+  string filepath = 4;
+}
+
+// Response for replication request
+message ReplicationResponse {
+  bool acknowledged = 1;
+}
+
+// Request to replicate file between data keepers
+message ReplicateFileRequest {
+  string filename = 1;
+  string filepath = 2;
+  string source_ip = 3;
+  string source_transfer_port = 4;
+}
+
+// Response for file replication
+message ReplicateFileResponse {
+  bool success = 1;
+  string message = 2;
+}
